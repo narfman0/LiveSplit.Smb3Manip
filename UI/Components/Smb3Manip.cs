@@ -37,6 +37,8 @@ namespace LiveSplit.UI.Components
         {
             var epoch_modified = DateTimeOffset.Now.ToUnixTimeMilliseconds() - EPOCH_OFFSET;
             var currentFrame = (epoch_modified - startTimeMs) / NES_MS_PER_FRAME;
+            if (startTimeMs == 0)
+                currentFrame = 0;
             return "Frame: " + Math.Round(currentFrame, 1) + " Lag: " + lagFrames;
         }
 
@@ -55,12 +57,17 @@ namespace LiveSplit.UI.Components
                     if (packetType == 1)
                     {
                         startTimeMs = BitConverter.ToUInt32(receivedResult, 2);
-                        File.AppendAllText(LOG_PATH, "Received startTimeMs=" + startTimeMs + "\n");
+                        File.AppendAllText(LOG_PATH, "Received START_TIME_UPDATED startTimeMs=" + startTimeMs + "\n");
                     }
                     else if (packetType == 2)
                     {
                         lagFrames = BitConverter.ToUInt16(receivedResult, 2);
-                        File.AppendAllText(LOG_PATH, "Received lagFrames=" + lagFrames + "\n");
+                        File.AppendAllText(LOG_PATH, "Received LAG_FRAMES_UPDATED lagFrames=" + lagFrames + "\n");
+                    }
+                    else if (packetType == 3)
+                    {
+                        startTimeMs = 0;
+                        File.AppendAllText(LOG_PATH, "Received RESET\n");
                     }
                 }
             }
